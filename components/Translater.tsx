@@ -3,23 +3,25 @@
 import { useEffect, useRef, useState } from "react";
 
 export default function Translater() {
-  const SpeechRecognition =
-    (window as any).SpeechRecognition ||
-    (window as any).webkitSpeechRecognition;
   const [status, setStatus] = useState<"idle" | "listening" | "paused">("idle");
   const [interim, setInterim] = useState("");
   const [finals, setFinals] = useState<string[]>([]);
-  const recognitionRef = useRef<typeof SpeechRecognition | null>(null);
+  const recognitionRef = useRef<any | null>(null);
 
   useEffect(() => {
+    // ✅ Перевіряємо, що це клієнт
     if (typeof window === "undefined") return;
+
+    const SpeechRecognition =
+      (window as any).SpeechRecognition ||
+      (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
       console.error("Web Speech API not supported in this browser.");
       return;
     }
 
-    const recognition = new SpeechRecognition();
+    const recognition: typeof SpeechRecognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
     recognition.lang = "ja-JP";
@@ -55,7 +57,13 @@ export default function Translater() {
     };
 
     recognitionRef.current = recognition;
-  }, [SpeechRecognition, status]);
+
+    // 🧹 cleanup
+    return () => {
+      recognition.stop();
+      recognitionRef.current = null;
+    };
+  }, [status]);
 
   const startListening = () => {
     if (recognitionRef.current && status === "idle") {
@@ -84,6 +92,7 @@ export default function Translater() {
       setStatus("listening");
     }
   };
+
   return (
     <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 text-gray-900">
       <div className="max-w-lg w-full text-center">
