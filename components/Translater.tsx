@@ -39,7 +39,7 @@ export default function Translater() {
 
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
+        if (event.results[i].isFinal && transcript.length > 0) {
           // якщо фраза закінчена — додаємо у фінальні
           finalTranscriptList.push(transcript);
         } else {
